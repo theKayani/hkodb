@@ -1,14 +1,35 @@
 package com.thekayani;
 
-import com.hk.dialect.Dialect;
-import com.hk.dialect.mysql.MySQLDialect;
-import com.hk.dialect.mysql.MySQLDialect.*;
+import com.hk.math.Rand;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.Properties;
 
 public class MySQLDialectTest
 {
+	private Connection conn;
+
+	@Before
+	public void setUp() throws Exception
+	{
+		Properties properties = new Properties();
+		properties.load(MySQLDialectTest.class.getResourceAsStream("/database.properties"));
+		String title = properties.getProperty("database.title");
+		String user = properties.getProperty("database.user");
+		String pass = properties.getProperty("database.pass");
+
+		Class.forName("com.mysql.cj.jdbc.Driver");
+
+		conn = DriverManager.getConnection("jdbc:mysql://" + user + ":" + pass + "@localhost:3306/" + title);
+	}
+
+	/*
 	@Test
 	public void testStuff()
 	{
@@ -79,5 +100,53 @@ public class MySQLDialectTest
 		expected = "SELECT `lua_points`.`x` FROM `lua_points` WHERE `lua_points`.`x` + `lua_points`.`y` = 10 + 10";
 		q = d.select(x).from(points).where(x.op(MySQLQueryOperator.ADD, y).is(MySQLQueryTest.EQUALS, d.value(10).op(MySQLQueryOperator.ADD, d.value(10))));
 		assertEquals(expected, Dialect.toString(q));
+	}
+	 */
+
+	@Test
+	public void doStuff() throws Exception
+	{
+		System.out.println(conn);
+
+		PreparedStatement statement;
+
+		statement = conn.prepareStatement("CREATE TABLE IF NOT EXISTS tasks (\n" +
+				"    task_id INT AUTO_INCREMENT PRIMARY KEY,\n" +
+				"    title VARCHAR(255) NOT NULL,\n" +
+				"    start_date DATE,\n" +
+				"    due_date DATE,\n" +
+				"    status TINYINT NOT NULL,\n" +
+				"    priority TINYINT NOT NULL,\n" +
+				"    description TEXT,\n" +
+				"    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n" +
+				")  ENGINE=INNODB;");
+		System.out.println("statement.executeUpdate() = " + statement.executeUpdate());
+		statement.close();
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("INSERT INTO tasks (title) VALUES ");
+		for (int i = 0; i < 100; i++)
+		{
+			sb.append("('").append(Rand.nextString(Rand.nextInt(5, 200))).append("'), ");
+		}
+		sb.setLength(sb.length() - 2);
+		sb.append(";");
+		statement = conn.prepareStatement(sb.toString());
+		System.out.println("statement.executeUpdate() = " + statement.executeUpdate());
+		statement.close();
+
+		statement = conn.prepareStatement("SELECT * FROM tasks;");
+		ResultSet set = statement.executeQuery();
+		while(set.next())
+		{
+			System.out.println("(" + set.getInt(1) + ") " + set.getString(2));
+		}
+		statement.close();
+	}
+
+	@After
+	public void tearDown() throws Exception
+	{
+		conn.close();
 	}
 }
