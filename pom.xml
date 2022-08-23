@@ -82,8 +82,12 @@
               <goal>execute</goal>
             </goals>
             <configuration>
+              <delimiter>;</delimiter>
               <!--suppress UnresolvedMavenProperty -->
-              <sqlCommand>CREATE DATABASE IF NOT EXISTS ${database.title};</sqlCommand>
+              <sqlCommand>
+                DROP DATABASE IF EXISTS ${database.title};
+                CREATE DATABASE ${database.title};
+              </sqlCommand>
             </configuration>
           </execution>
           <execution>

@@ -11,6 +11,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Properties;
 
+import static org.junit.Assert.*;
+
 public class MySQLDialectTest
 {
 	private Connection conn;
@@ -106,21 +108,13 @@ public class MySQLDialectTest
 	@Test
 	public void doStuff() throws Exception
 	{
-		System.out.println(conn);
-
 		PreparedStatement statement;
 
 		statement = conn.prepareStatement("CREATE TABLE IF NOT EXISTS tasks (\n" +
 				"    task_id INT AUTO_INCREMENT PRIMARY KEY,\n" +
-				"    title VARCHAR(255) NOT NULL,\n" +
-				"    start_date DATE,\n" +
-				"    due_date DATE,\n" +
-				"    status TINYINT NOT NULL,\n" +
-				"    priority TINYINT NOT NULL,\n" +
-				"    description TEXT,\n" +
-				"    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n" +
+				"    title VARCHAR(255) NOT NULL" +
 				")  ENGINE=INNODB;");
-		System.out.println("statement.executeUpdate() = " + statement.executeUpdate());
+		assertFalse(statement.execute());
 		statement.close();
 
 		StringBuilder sb = new StringBuilder();
@@ -132,15 +126,14 @@ public class MySQLDialectTest
 		sb.setLength(sb.length() - 2);
 		sb.append(";");
 		statement = conn.prepareStatement(sb.toString());
-		System.out.println("statement.executeUpdate() = " + statement.executeUpdate());
+		assertEquals(100, statement.executeUpdate());
 		statement.close();
 
-		statement = conn.prepareStatement("SELECT * FROM tasks;");
+		statement = conn.prepareStatement("SELECT COUNT(*) FROM tasks;");
 		ResultSet set = statement.executeQuery();
-		while(set.next())
-		{
-			System.out.println("(" + set.getInt(1) + ") " + set.getString(2));
-		}
+		assertTrue(set.next());
+		assertEquals(100, set.getInt(1));
+		assertFalse(set.next());
 		statement.close();
 	}
 
