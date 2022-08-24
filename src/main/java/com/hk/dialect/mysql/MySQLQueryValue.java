@@ -3,6 +3,8 @@ package com.hk.dialect.mysql;
 import com.hk.dialect.Dialect.*;
 import com.hk.str.HTMLText;
 
+import java.util.AbstractMap;
+
 public interface MySQLQueryValue extends QueryValue, MySQLDialect.MySQLDialectOwner
 {
 	@Override

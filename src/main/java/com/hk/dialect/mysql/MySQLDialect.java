@@ -1,12 +1,15 @@
 package com.hk.dialect.mysql;
 
 import com.hk.dialect.Dialect;
-import com.hk.dialect.mysql.MySQLPrimitiveValueMeta.PrimitiveType;
 import com.hk.str.HTMLText;
+import com.mysql.cj.MysqlType;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.SQLType;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 public class MySQLDialect implements Dialect
 {
@@ -20,24 +23,24 @@ public class MySQLDialect implements Dialect
 	public QueryValue value(Object value)
 	{
 		if(value == null)
-			return new MySQLPrimitiveValueMeta(null, PrimitiveType.NULL);
+			return new MySQLPrimitiveValueMeta(null, MysqlType.NULL);
 		else if(value instanceof Double || value instanceof Float || value instanceof BigDecimal)
-			return new MySQLPrimitiveValueMeta(value, PrimitiveType.DOUBLE);
+			return new MySQLPrimitiveValueMeta(value, MysqlType.DOUBLE);
 		else if(value instanceof Long || value instanceof Integer ||
 				value instanceof Short || value instanceof Byte || value instanceof BigInteger)
-			return new MySQLPrimitiveValueMeta(value, PrimitiveType.INTEGER);
+			return new MySQLPrimitiveValueMeta(value, MysqlType.INT);
 		else if(value instanceof CharSequence)
-			return new MySQLPrimitiveValueMeta(value, PrimitiveType.STRING);
+			return new MySQLPrimitiveValueMeta(value, MysqlType.VARCHAR);
 		else if(value instanceof Boolean)
-			return new MySQLPrimitiveValueMeta(value, PrimitiveType.BOOLEAN);
+			return new MySQLPrimitiveValueMeta(value, MysqlType.BOOLEAN);
 		else if(value instanceof Date)
-			return new MySQLPrimitiveValueMeta(value, PrimitiveType.DATE);
+			return new MySQLPrimitiveValueMeta(value, MysqlType.DATE);
 		else
 			throw new UnsupportedOperationException("Cannot be turned into MySQL primitive: " + value);
 	}
 
 	@Override
-	public TableMeta table(Owner owner, String name)
+	public TableMeta table(String owner, String name)
 	{
 		return new MySQLTableMeta(owner, name);
 	}
@@ -77,7 +80,7 @@ public class MySQLDialect implements Dialect
 		}
 
 		@Override
-		public HTMLText print(HTMLText txt)
+		public HTMLText print(HTMLText txt, List<Map.Entry<SQLType, Object>> values)
 		{
 			switch(this)
 			{
@@ -119,7 +122,7 @@ public class MySQLDialect implements Dialect
 		}
 
 		@Override
-		public HTMLText print(HTMLText txt)
+		public HTMLText print(HTMLText txt, List<Map.Entry<SQLType, Object>> values)
 		{
 			switch(this)
 			{
@@ -141,4 +144,7 @@ public class MySQLDialect implements Dialect
 			}
 		}
 	}
+
+	private MySQLDialect()
+	{}
 }

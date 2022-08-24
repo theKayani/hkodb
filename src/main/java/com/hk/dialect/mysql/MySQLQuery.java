@@ -3,17 +3,21 @@ package com.hk.dialect.mysql;
 import com.hk.dialect.Dialect.*;
 import com.hk.str.HTMLText;
 
+import java.sql.SQLType;
+import java.util.List;
+import java.util.Map;
+
 public class MySQLQuery implements Query, MySQLDialect.MySQLDialectOwner
 {
 	final FieldMeta[] fields;
 	final TableMeta[] tables;
-	final Condition[] conditions;
+	final Condition condition;
 
-	MySQLQuery(FieldMeta[] fields, TableMeta[] tables, Condition[] conditions)
+	MySQLQuery(FieldMeta[] fields, TableMeta[] tables, Condition condition)
 	{
 		this.fields = fields;
 		this.tables = tables;
-		this.conditions = conditions;
+		this.condition = condition;
 	}
 
 	@Override
@@ -23,18 +27,18 @@ public class MySQLQuery implements Query, MySQLDialect.MySQLDialectOwner
 	}
 
 	@Override
-	public Query where(Condition... conditions)
+	public Query where(Condition condition)
 	{
-		return new MySQLQuery(fields, tables, conditions);
+		return new MySQLQuery(fields, tables, condition);
 	}
 
 	@Override
-	public HTMLText print(HTMLText txt)
+	public HTMLText print(HTMLText txt, List<Map.Entry<SQLType, Object>> values)
 	{
 		txt.wr("SELECT ");
 		for (int i = 0; i < fields.length; i++)
 		{
-			fields[i].print(txt);
+			fields[i].print(txt, values);
 
 			if(i < fields.length - 1)
 				txt.wr(", ");
@@ -42,18 +46,15 @@ public class MySQLQuery implements Query, MySQLDialect.MySQLDialectOwner
 		txt.wr(" FROM ");
 		for (int i = 0; i < tables.length; i++)
 		{
-			tables[i].print(txt);
+			tables[i].print(txt, values);
 
 			if(i < tables.length - 1)
 				txt.wr(", ");
 		}
-		txt.wr(" WHERE ");
-		for (int i = 0; i < conditions.length; i++)
+		if(condition != null)
 		{
-			conditions[i].print(txt);
-
-			if(i < conditions.length - 1)
-				txt.wr(" AND ");
+			txt.wr(" WHERE ");
+			condition.print(txt, values);
 		}
 		return txt;
 	}

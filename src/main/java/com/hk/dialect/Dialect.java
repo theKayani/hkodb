@@ -3,24 +3,39 @@ package com.hk.dialect;
 import com.hk.str.HTMLText;
 import com.hk.str.StringUtil;
 
+import java.sql.SQLType;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 public interface Dialect
 {
 	Query select(FieldMeta... fields);
 
 	QueryValue value(Object value);
 
-	TableMeta table(Owner owner, String name);
+	TableMeta table(String owner, String name);
 
-	static String toString(DialectOwner o)
+	default TableMeta table(Owner owner, String name)
 	{
-		return o.print(new HTMLText()).create();
+		return table(owner.prefix, name);
 	}
+
+//	static String toString(DialectOwner o)
+//	{
+//		return toString(o, Collections.emptyList());
+//	}
+//
+//	static String toString(DialectOwner o, List<Map.Entry<SQLType, Object>> values)
+//	{
+//		return o.print(new HTMLText(), values).create();
+//	}
 
 	interface Query extends DialectOwner
 	{
 		Query from(TableMeta... tables);
 
-		Query where(Condition... conditions);
+		Query where(Condition condition);
 	}
 
 	interface QueryValue extends DialectOwner
@@ -51,9 +66,7 @@ public interface Dialect
 	}
 
 	interface FieldMeta extends QueryValue
-	{
-		boolean isValue();
-	}
+	{}
 
 	interface TableMeta extends DialectOwner
 	{
@@ -73,26 +86,29 @@ public interface Dialect
 	{
 		Dialect dialect();
 
-		HTMLText print(HTMLText txt);
+		HTMLText print(HTMLText txt, List<Map.Entry<SQLType, Object>> values);
+
+		default void test(DialectOwner dialectOwner)
+		{
+			if(dialectOwner == null)
+				throw new NullPointerException("dialect owner is null");
+			if(dialect() != dialectOwner.dialect())
+				throw new IllegalArgumentException("SQL dialects do not match");
+		}
 	}
 
 	enum Owner
 	{
-		SYSTEM, LUA, USER;
+		SYSTEM("sys"),
+		LUA("lua"),
+		USER("usr"),
+		TEST("tst");
 
-		public String getPrefix()
+		public final String prefix;
+
+		Owner(String prefix)
 		{
-			switch(this)
-			{
-				case SYSTEM:
-					return "sys";
-				case LUA:
-					return "lua";
-				case USER:
-					return "usr";
-				default:
-					throw new IllegalStateException("Unexpected value: " + this);
-			}
+			this.prefix = prefix;
 		}
 	}
 }

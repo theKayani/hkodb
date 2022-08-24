@@ -1,8 +1,11 @@
 package com.hk.dialect.mysql;
 
-import com.hk.dialect.Dialect;
 import com.hk.dialect.Dialect.*;
 import com.hk.str.HTMLText;
+
+import java.sql.SQLType;
+import java.util.List;
+import java.util.Map;
 
 public class MySQLCondition implements MySQLQueryValue, Condition, MySQLDialect.MySQLDialectOwner
 {
@@ -14,9 +17,6 @@ public class MySQLCondition implements MySQLQueryValue, Condition, MySQLDialect.
 		this.value1 = value1;
 		this.test = test;
 		this.value2 = value2;
-		System.out.println("test = " + test);
-		System.out.println("value1 = " + value1);
-		System.out.println("value2 = " + value2);
 	}
 
 	@Override
@@ -38,20 +38,20 @@ public class MySQLCondition implements MySQLQueryValue, Condition, MySQLDialect.
 	}
 
 	@Override
-	public HTMLText print(HTMLText txt)
+	public HTMLText print(HTMLText txt, List<Map.Entry<SQLType, Object>> values)
 	{
 		if(value1 != null)
-			value1.print(txt);
+			value1.print(txt, values);
 
 		if(test != null)
 		{
 			txt.wr(" ");
-			test.print(txt);
+			test.print(txt, values);
 			txt.wr(" ");
 		}
 
 		if(value2 != null)
-			value2.print(txt);
+			value2.print(txt, values);
 
 		return txt;
 	}

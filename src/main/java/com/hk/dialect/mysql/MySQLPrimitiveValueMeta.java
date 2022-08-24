@@ -1,38 +1,28 @@
 package com.hk.dialect.mysql;
 
-import com.hk.dialect.Dialect.*;
 import com.hk.str.HTMLText;
+import com.mysql.cj.MysqlType;
+
+import java.sql.SQLType;
+import java.util.AbstractMap;
+import java.util.List;
+import java.util.Map;
 
 public class MySQLPrimitiveValueMeta implements MySQLQueryValue, MySQLDialect.MySQLDialectOwner
 {
 	private final Object value;
-	private final PrimitiveType type;
+	private final MysqlType type;
 
-	MySQLPrimitiveValueMeta(Object value, PrimitiveType type)
+	MySQLPrimitiveValueMeta(Object value, MysqlType type)
 	{
 		this.value = value;
 		this.type = type;
 	}
 
 	@Override
-	public HTMLText print(HTMLText txt)
+	public HTMLText print(HTMLText txt, List<Map.Entry<SQLType, Object>> values)
 	{
-		switch(type)
-		{
-			case INTEGER:
-				return txt.wr(String.valueOf((int) value));
-			case NULL:
-			case DOUBLE:
-			case STRING:
-			case BOOLEAN:
-			case DATE:
-			default:
-				throw new UnsupportedOperationException();
-		}
-	}
-
-	enum PrimitiveType
-	{
-		NULL, DOUBLE, INTEGER, STRING, BOOLEAN, DATE;
+		values.add(new AbstractMap.SimpleImmutableEntry<>(type, value));
+		return txt.wr("?");
 	}
 }
