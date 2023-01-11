@@ -27,9 +27,11 @@ public class MySQLCompoundValue implements MySQLQueryValue, MySQLDialect.MySQLDi
 
 		if(op != null)
 		{
-			txt.wr(" ");
+			if(value1 != null)
+				txt.wr(" ");
 			op.print(txt, values);
-			txt.wr(" ");
+			if(value2 != null)
+				txt.wr(" ");
 		}
 
 		if(value2 != null)

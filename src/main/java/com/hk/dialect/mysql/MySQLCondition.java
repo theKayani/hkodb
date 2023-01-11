@@ -45,9 +45,11 @@ public class MySQLCondition implements MySQLQueryValue, Condition, MySQLDialect.
 
 		if(test != null)
 		{
-			txt.wr(" ");
+			if(value1 != null)
+				txt.wr(" ");
 			test.print(txt, values);
-			txt.wr(" ");
+			if(value2 != null)
+				txt.wr(" ");
 		}
 
 		if(value2 != null)

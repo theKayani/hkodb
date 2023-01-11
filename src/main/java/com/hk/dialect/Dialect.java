@@ -3,7 +3,11 @@ package com.hk.dialect;
 import com.hk.str.HTMLText;
 import com.hk.str.StringUtil;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.SQLType;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +24,27 @@ public interface Dialect
 	{
 		return table(owner.prefix, name);
 	}
+
+	static PreparedStatement prepareStatement(Connection conn, Query query) throws SQLException
+	{
+		List<Map.Entry<SQLType, Object>> values = new ArrayList<>();
+		HTMLText txt = new HTMLText();
+		query.print(txt, values);
+		PreparedStatement statement = conn.prepareStatement(txt.create());
+
+		Map.Entry<SQLType, Object> entry;
+		for (int i = 0; i < values.size(); i++)
+		{
+			entry = values.get(i);
+			statement.setObject(i + 1, entry.getValue(), entry.getKey());
+		}
+
+		return statement;
+	}
+
+	QueryTest[] getQueryTests();
+
+	QueryOperator[] getQueryOperators();
 
 //	static String toString(DialectOwner o)
 //	{

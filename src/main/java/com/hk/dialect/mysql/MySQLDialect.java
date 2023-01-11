@@ -28,7 +28,7 @@ public class MySQLDialect implements Dialect
 			return new MySQLPrimitiveValueMeta(value, MysqlType.DOUBLE);
 		else if(value instanceof Long || value instanceof Integer ||
 				value instanceof Short || value instanceof Byte || value instanceof BigInteger)
-			return new MySQLPrimitiveValueMeta(value, MysqlType.INT);
+			return new MySQLPrimitiveValueMeta(value, MysqlType.BIGINT);
 		else if(value instanceof CharSequence)
 			return new MySQLPrimitiveValueMeta(value, MysqlType.VARCHAR);
 		else if(value instanceof Boolean)
@@ -43,6 +43,18 @@ public class MySQLDialect implements Dialect
 	public TableMeta table(String owner, String name)
 	{
 		return new MySQLTableMeta(owner, name);
+	}
+
+	@Override
+	public QueryTest[] getQueryTests()
+	{
+		return MySQLQueryTest.values();
+	}
+
+	@Override
+	public QueryOperator[] getQueryOperators()
+	{
+		return MySQLQueryOperator.values();
 	}
 
 	private static MySQLDialect instance;

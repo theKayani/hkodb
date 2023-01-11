@@ -1,7 +1,7 @@
-package com.thekayani;
+package com.hk.dialect.mysql;
 
 import com.hk.dialect.Dialect;
-import com.hk.dialect.mysql.MySQLDialect;
+import com.hk.dialect.DialectTest;
 import com.hk.math.Rand;
 import com.hk.str.HTMLText;
 import com.mysql.cj.MysqlType;
@@ -26,15 +26,7 @@ public class MySQLDialectTest
 	@Before
 	public void setUp() throws Exception
 	{
-		Properties properties = new Properties();
-		properties.load(MySQLDialectTest.class.getResourceAsStream("/database.properties"));
-		String title = properties.getProperty("database.title");
-		String user = properties.getProperty("database.user");
-		String pass = properties.getProperty("database.pass");
-
-		Class.forName("com.mysql.cj.jdbc.Driver");
-
-		conn = DriverManager.getConnection("jdbc:mysql://" + user + ":" + pass + "@localhost:3306/" + title);
+		conn = DialectTest.getMySQLConnection();
 	}
 
 	@Test
@@ -50,7 +42,7 @@ public class MySQLDialectTest
 		statement.close();
 
 		StringBuilder sb = new StringBuilder();
-		sb.append("INSERT INTO tasks (title) VALUES ");
+		sb.append("INSERT INTO `tasks` (`title`) VALUES ");
 		for (int i = 0; i < 100; i++)
 		{
 			sb.append("('").append(Rand.nextString(Rand.nextInt(5, 200))).append("'), ");
@@ -103,7 +95,7 @@ public class MySQLDialectTest
 		assertEquals(1, values.size());
 
 		entry = values.get(0);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(1, entry.getValue());
 		/////////////////////////////////////////////
 		expected = "SELECT `lua_points`.`x` FROM `lua_points` WHERE `lua_points`.`x` + ? = ?";
@@ -114,10 +106,10 @@ public class MySQLDialectTest
 		assertEquals(2, values.size());
 
 		entry = values.get(0);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(1, entry.getValue());
 		entry = values.get(1);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(2, entry.getValue());
 		/////////////////////////////////////////////
 		expected = "SELECT `lua_points`.`x` FROM `lua_points` WHERE `lua_points`.`x` = ?";
@@ -128,7 +120,7 @@ public class MySQLDialectTest
 		assertEquals(1, values.size());
 
 		entry = values.get(0);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(10, entry.getValue());
 		/////////////////////////////////////////////
 		expected = "SELECT `lua_points`.`x` FROM `lua_points` WHERE `lua_points`.`x` != ?";
@@ -139,7 +131,7 @@ public class MySQLDialectTest
 		assertEquals(1, values.size());
 
 		entry = values.get(0);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(1, entry.getValue());
 		/////////////////////////////////////////////
 		expected = "SELECT `lua_points`.`x` FROM `lua_points` WHERE `lua_points`.`x` < ?";
@@ -150,7 +142,7 @@ public class MySQLDialectTest
 		assertEquals(1, values.size());
 
 		entry = values.get(0);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(1, entry.getValue());
 		/////////////////////////////////////////////
 		expected = "SELECT `lua_points`.`x` FROM `lua_points` WHERE ? = `lua_points`.`x`";
@@ -161,7 +153,7 @@ public class MySQLDialectTest
 		assertEquals(1, values.size());
 
 		entry = values.get(0);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(1, entry.getValue());
 		/////////////////////////////////////////////
 		expected = "SELECT `lua_points`.`x` FROM `lua_points` WHERE ? >= `lua_points`.`x`";
@@ -172,7 +164,7 @@ public class MySQLDialectTest
 		assertEquals(1, values.size());
 
 		entry = values.get(0);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(1, entry.getValue());
 		/////////////////////////////////////////////
 		expected = "SELECT `lua_points`.`x` FROM `lua_points` WHERE `lua_points`.`x` = `lua_points`.`x`";
@@ -222,11 +214,11 @@ public class MySQLDialectTest
 		assertEquals(2, values.size());
 
 		entry = values.get(0);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(1, entry.getValue());
 
 		entry = values.get(1);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(2, entry.getValue());
 		/////////////////////////////////////////////
 		expected = "SELECT `lua_points`.`x` FROM `lua_points` WHERE `lua_points`.`x` + ? = ? + ?";
@@ -237,15 +229,15 @@ public class MySQLDialectTest
 		assertEquals(3, values.size());
 
 		entry = values.get(0);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(1, entry.getValue());
 
 		entry = values.get(1);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(1, entry.getValue());
 
 		entry = values.get(2);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(1, entry.getValue());
 		/////////////////////////////////////////////
 		expected = "SELECT `lua_points`.`x` FROM `lua_points` WHERE `lua_points`.`x` + `lua_points`.`y` = ? + ?";
@@ -256,11 +248,11 @@ public class MySQLDialectTest
 		assertEquals(2, values.size());
 
 		entry = values.get(0);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(10, entry.getValue());
 
 		entry = values.get(1);
-		assertEquals(MysqlType.INT, entry.getKey());
+		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(10, entry.getValue());
 	}
 
