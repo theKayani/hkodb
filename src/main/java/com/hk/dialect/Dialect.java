@@ -1,7 +1,7 @@
 package com.hk.dialect;
 
 import com.hk.str.HTMLText;
-import com.hk.str.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,20 +12,43 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public interface Dialect
+
+@SuppressWarnings("unused")
+public abstract class Dialect
 {
-	Query select(FieldMeta... fields);
+	//// CRUD OPERATIONS
+	// Create
+	public abstract InsertQuery insert(TableMeta table);
 
-	QueryValue value(Object value);
+	// Read
+	public abstract SelectQuery select(FieldMeta... fields);
 
-	TableMeta table(String owner, String name);
+	// Update
+	public abstract UpdateQuery update(TableMeta table);
 
-	default TableMeta table(Owner owner, String name)
+	// Delete
+	public abstract DeleteQuery delete(TableMeta table);
+
+	//// TABLE OPERATIONS
+
+	public abstract CreateTableQuery createTable(TableMeta table);
+
+	////
+
+	public abstract Query.QueryValue value(Object value);
+
+	public abstract TableMeta table(Owner owner, String name);
+
+	public Owner owner(String name)
 	{
-		return table(owner.prefix, name);
+		return Owner.as(name);
 	}
 
-	static PreparedStatement prepareStatement(Connection conn, Query query) throws SQLException
+	public abstract Query.QueryTest[] getQueryTests();
+
+	public abstract Query.QueryOperator[] getQueryOperators();
+
+	public static PreparedStatement prepareStatement(Connection conn, Query query) throws SQLException
 	{
 		List<Map.Entry<SQLType, Object>> values = new ArrayList<>();
 		HTMLText txt = new HTMLText();
@@ -42,72 +65,12 @@ public interface Dialect
 		return statement;
 	}
 
-	QueryTest[] getQueryTests();
-
-	QueryOperator[] getQueryOperators();
-
-//	static String toString(DialectOwner o)
-//	{
-//		return toString(o, Collections.emptyList());
-//	}
-//
-//	static String toString(DialectOwner o, List<Map.Entry<SQLType, Object>> values)
-//	{
-//		return o.print(new HTMLText(), values).create();
-//	}
-
-	interface Query extends DialectOwner
+	public static String toString(DialectOwner o)
 	{
-		Query from(TableMeta... tables);
-
-		Query where(Condition condition);
+		return o.print(new HTMLText(), Collections.emptyList()).create();
 	}
 
-	interface QueryValue extends DialectOwner
-	{
-		Condition is(QueryTest test, QueryValue value);
-
-		QueryValue op(QueryOperator op, QueryValue value);
-	}
-
-	interface QueryTest extends DialectOwner
-	{
-		default String getName()
-		{
-			return StringUtil.properCapitalize(name());
-		}
-
-		String name();
-	}
-
-	interface QueryOperator extends DialectOwner
-	{
-		default String getName()
-		{
-			return StringUtil.properCapitalize(name());
-		}
-
-		String name();
-	}
-
-	interface FieldMeta extends QueryValue
-	{}
-
-	interface TableMeta extends DialectOwner
-	{
-		FieldMeta field(String name);
-	}
-
-	interface Condition extends QueryValue
-	{
-		Condition and(Condition condition);
-
-		Condition or(Condition condition);
-
-		Condition not();
-	}
-
-	interface DialectOwner
+	public interface DialectOwner
 	{
 		Dialect dialect();
 
@@ -115,25 +78,10 @@ public interface Dialect
 
 		default void test(DialectOwner dialectOwner)
 		{
-			if(dialectOwner == null)
+			if (dialectOwner == null)
 				throw new NullPointerException("dialect owner is null");
-			if(dialect() != dialectOwner.dialect())
+			if (dialect() != dialectOwner.dialect())
 				throw new IllegalArgumentException("SQL dialects do not match");
-		}
-	}
-
-	enum Owner
-	{
-		SYSTEM("sys"),
-		LUA("lua"),
-		USER("usr"),
-		TEST("tst");
-
-		public final String prefix;
-
-		Owner(String prefix)
-		{
-			this.prefix = prefix;
 		}
 	}
 }

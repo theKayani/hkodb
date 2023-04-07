@@ -1,18 +1,18 @@
 package com.hk.dialect.mysql;
 
-import com.hk.dialect.Dialect.*;
+import com.hk.dialect.Query;
 import com.hk.str.HTMLText;
 
 import java.sql.SQLType;
 import java.util.List;
 import java.util.Map;
 
-public class MySQLCondition implements MySQLQueryValue, Condition, MySQLDialect.MySQLDialectOwner
+public class MySQLCondition implements MySQLQueryValue, Query.Condition, MySQLDialect.MySQLDialectOwner
 {
-	private final QueryValue value1, value2;
-	private final QueryTest test;
+	private final Query.QueryValue value1, value2;
+	private final Query.QueryTest test;
 
-	public MySQLCondition(QueryValue value1, QueryTest test, QueryValue value2)
+	public MySQLCondition(Query.QueryValue value1, Query.QueryTest test, Query.QueryValue value2)
 	{
 		this.value1 = value1;
 		this.test = test;
@@ -20,19 +20,19 @@ public class MySQLCondition implements MySQLQueryValue, Condition, MySQLDialect.
 	}
 
 	@Override
-	public Condition and(Condition condition)
+	public Query.Condition and(Query.Condition condition)
 	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Condition or(Condition condition)
+	public Query.Condition or(Query.Condition condition)
 	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Condition not()
+	public Query.Condition not()
 	{
 		throw new UnsupportedOperationException();
 	}

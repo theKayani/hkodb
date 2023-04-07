@@ -1,19 +1,21 @@
 package com.hk.dialect.mysql;
 
-import com.hk.dialect.Dialect.*;
+import com.hk.dialect.FieldMeta;
+import com.hk.dialect.SelectQuery;
+import com.hk.dialect.TableMeta;
 import com.hk.str.HTMLText;
 
 import java.sql.SQLType;
 import java.util.List;
 import java.util.Map;
 
-public class MySQLQuery implements Query, MySQLDialect.MySQLDialectOwner
+public class MySQLSelectQuery implements SelectQuery, MySQLDialect.MySQLDialectOwner
 {
 	final FieldMeta[] fields;
 	final TableMeta[] tables;
 	final Condition condition;
 
-	MySQLQuery(FieldMeta[] fields, TableMeta[] tables, Condition condition)
+	MySQLSelectQuery(FieldMeta[] fields, TableMeta[] tables, Condition condition)
 	{
 		this.fields = fields;
 		this.tables = tables;
@@ -21,15 +23,15 @@ public class MySQLQuery implements Query, MySQLDialect.MySQLDialectOwner
 	}
 
 	@Override
-	public Query from(TableMeta... tables)
+	public SelectQuery from(TableMeta... tables)
 	{
-		return new MySQLQuery(fields, tables, null);
+		return new MySQLSelectQuery(fields, tables, null);
 	}
 
 	@Override
-	public Query where(Condition condition)
+	public SelectQuery where(Condition condition)
 	{
-		return new MySQLQuery(fields, tables, condition);
+		return new MySQLSelectQuery(fields, tables, condition);
 	}
 
 	@Override

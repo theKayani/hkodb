@@ -1,6 +1,6 @@
 package com.hk.dialect.mysql;
 
-import com.hk.dialect.Dialect;
+import com.hk.dialect.*;
 import com.hk.str.HTMLText;
 import com.mysql.cj.MysqlType;
 
@@ -11,16 +11,43 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public class MySQLDialect implements Dialect
+public final class MySQLDialect extends Dialect
 {
+	private MySQLDialect()
+	{}
+
 	@Override
-	public Query select(FieldMeta... fields)
+	public InsertQuery insert(TableMeta table)
 	{
-		return new MySQLQuery(fields, null, null);
+		return new MySQLInsertQuery(table);
 	}
 
 	@Override
-	public QueryValue value(Object value)
+	public SelectQuery select(FieldMeta... fields)
+	{
+		return new MySQLSelectQuery(fields, null, null);
+	}
+
+	@Override
+	public UpdateQuery update(TableMeta table)
+	{
+		throw new Error("TODO");
+	}
+
+	@Override
+	public DeleteQuery delete(TableMeta table)
+	{
+		throw new Error("TODO");
+	}
+
+	@Override
+	public CreateTableQuery createTable(TableMeta table)
+	{
+		return new MySQLCreateTableQuery(table);
+	}
+
+	@Override
+	public Query.QueryValue value(Object value)
 	{
 		if(value == null)
 			return new MySQLPrimitiveValueMeta(null, MysqlType.NULL);
@@ -40,19 +67,25 @@ public class MySQLDialect implements Dialect
 	}
 
 	@Override
-	public TableMeta table(String owner, String name)
+	public TableMeta table(Owner owner, String name)
 	{
 		return new MySQLTableMeta(owner, name);
 	}
 
 	@Override
-	public QueryTest[] getQueryTests()
+	public Owner owner(String name)
+	{
+		return super.owner(name);
+	}
+
+	@Override
+	public Query.QueryTest[] getQueryTests()
 	{
 		return MySQLQueryTest.values();
 	}
 
 	@Override
-	public QueryOperator[] getQueryOperators()
+	public Query.QueryOperator[] getQueryOperators()
 	{
 		return MySQLQueryOperator.values();
 	}
@@ -75,7 +108,7 @@ public class MySQLDialect implements Dialect
 		}
 	}
 
-	public enum MySQLQueryTest implements QueryTest
+	public enum MySQLQueryTest implements Query.QueryTest
 	{
 		EQUALS,
 		NOT_EQUALS,
@@ -116,7 +149,7 @@ public class MySQLDialect implements Dialect
 		}
 	}
 
-	public enum MySQLQueryOperator implements QueryOperator
+	public enum MySQLQueryOperator implements Query.QueryOperator
 	{
 		ADD,
 		SUBTRACT,
@@ -156,7 +189,4 @@ public class MySQLDialect implements Dialect
 			}
 		}
 	}
-
-	private MySQLDialect()
-	{}
 }

@@ -1,20 +1,17 @@
 package com.hk.dialect.mysql;
 
-import com.hk.dialect.Dialect.*;
-import com.hk.str.HTMLText;
+import com.hk.dialect.*;
 
-import java.util.AbstractMap;
-
-public interface MySQLQueryValue extends QueryValue, MySQLDialect.MySQLDialectOwner
+public interface MySQLQueryValue extends Query.QueryValue, MySQLDialect.MySQLDialectOwner
 {
 	@Override
-	default Condition is(QueryTest test, QueryValue value)
+	default Query.Condition is(Query.QueryTest test, Query.QueryValue value)
 	{
 		return new MySQLCondition(this, test, value);
 	}
 
 	@Override
-	default QueryValue op(QueryOperator op, QueryValue value)
+	default Query.QueryValue op(Query.QueryOperator op, Query.QueryValue value)
 	{
 		return new MySQLCompoundValue(this, op, value);
 	}

@@ -1,7 +1,6 @@
 package com.hk.dialect;
 
-import com.hk.dialect.mysql.MySQLDialectTest;
-import org.junit.Before;
+import com.hk.dialect.mysql.SyntaxTest;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,7 +11,7 @@ public class DialectTest
 	public static Connection getMySQLConnection() throws Exception
 	{
 		Properties properties = new Properties();
-		properties.load(MySQLDialectTest.class.getResourceAsStream("/database.properties"));
+		properties.load(SyntaxTest.class.getResourceAsStream("/database.properties"));
 		String title = properties.getProperty("database.title");
 		String user = properties.getProperty("database.user");
 		String pass = properties.getProperty("database.pass");

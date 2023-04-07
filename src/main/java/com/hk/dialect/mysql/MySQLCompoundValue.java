@@ -1,6 +1,6 @@
 package com.hk.dialect.mysql;
 
-import com.hk.dialect.Dialect.*;
+import com.hk.dialect.Query;
 import com.hk.str.HTMLText;
 
 import java.sql.SQLType;
@@ -9,10 +9,10 @@ import java.util.Map;
 
 public class MySQLCompoundValue implements MySQLQueryValue, MySQLDialect.MySQLDialectOwner
 {
-	private final QueryValue value1, value2;
-	private final QueryOperator op;
+	private final Query.QueryValue value1, value2;
+	private final Query.QueryOperator op;
 
-	public MySQLCompoundValue(QueryValue value1, QueryOperator op, QueryValue value2)
+	public MySQLCompoundValue(Query.QueryValue value1, Query.QueryOperator op, Query.QueryValue value2)
 	{
 		this.value1 = value1;
 		this.op = op;
