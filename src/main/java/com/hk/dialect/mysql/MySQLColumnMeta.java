@@ -2,6 +2,7 @@ package com.hk.dialect.mysql;
 
 import com.hk.dialect.ColumnMeta;
 import com.hk.str.HTMLText;
+import com.hk.util.KeyValue;
 import com.mysql.cj.MysqlType;
 
 import java.sql.SQLType;
@@ -9,8 +10,9 @@ import java.util.*;
 
 public class MySQLColumnMeta extends ColumnMeta implements MySQLDialect.MySQLDialectOwner
 {
-	private Boolean notNull, autoIncrement;
+	private Boolean notNull, autoIncrement, ctOnUpdate;
 	private Map.Entry<MysqlType, Object> defaultValue;
+	private KeyValue<String> characterSet;
 
 	public MySQLColumnMeta(MysqlType type, Object... args)
 	{
@@ -18,10 +20,16 @@ public class MySQLColumnMeta extends ColumnMeta implements MySQLDialect.MySQLDia
 		// just verify args for use in 'print'
 		switch (type)
 		{
+			case TEXT:
+			case BLOB:
+				if(args.length == 0)
+					break;
+			case BINARY:
+			case VARBINARY:
 			case CHAR:
 			case VARCHAR:
 				if(args.length == 0)
-					throw new IllegalArgumentException("CHAR and VARCHAR types need a length argument");
+					throw new IllegalArgumentException(type + " type needs a length argument");
 				if(!(args[0] instanceof Integer))
 					throw new IllegalArgumentException("first argument (length) integer expected");
 				if(((Integer) args[0]) < 1 || ((Integer) args[0]) > 65535)
@@ -39,6 +47,26 @@ public class MySQLColumnMeta extends ColumnMeta implements MySQLDialect.MySQLDia
 				if(args.length > 1)
 					throw new IllegalArgumentException("expected only one argument, not " + Arrays.toString(args));
 				break;
+			case DATETIME:
+			case TIMESTAMP:
+			case TIME:
+				if(args.length == 1)
+				{
+					if(!(args[0] instanceof Integer))
+						throw new IllegalArgumentException("first argument (fsp) integer expected");
+					if(((Integer) args[0]) < 0 || ((Integer) args[0]) > 6)
+						throw new IllegalArgumentException("first argument (fsp) out of bounds");
+				}
+				else if(args.length > 1)
+					throw new IllegalArgumentException("expected none or only one argument, not " + Arrays.toString(args));
+				break;
+			case DATE:
+			case TINYTEXT:
+			case TINYBLOB:
+			case MEDIUMTEXT:
+			case MEDIUMBLOB:
+			case LONGTEXT:
+			case LONGBLOB:
 			case BOOLEAN:
 			case FLOAT:
 			case DOUBLE:
@@ -105,7 +133,22 @@ public class MySQLColumnMeta extends ColumnMeta implements MySQLDialect.MySQLDia
 
 				notNull = (Boolean) value;
 				break;
+			case "def":
 			case "default":
+				switch ((MysqlType) type)
+				{
+					case TINYTEXT:
+					case TINYBLOB:
+					case MEDIUMTEXT:
+					case MEDIUMBLOB:
+					case TEXT:
+					case BLOB:
+					case LONGTEXT:
+					case LONGBLOB:
+						throw new IllegalArgumentException(type + " type cannot have a default value");
+					default:
+						break;
+				}
 				if((type == MysqlType.TIMESTAMP || type == MysqlType.DATETIME) && index == null && value instanceof String)
 				{
 					switch (((String) value).toLowerCase(Locale.ROOT))
@@ -116,6 +159,7 @@ public class MySQLColumnMeta extends ColumnMeta implements MySQLDialect.MySQLDia
 						case "current_date":
 						case "now":
 							defaultValue = new AbstractMap.SimpleImmutableEntry<>(null, "CURRENT_TIMESTAMP");
+							break;
 						default:
 							throw new IllegalArgumentException("unexpected default value for timestamp/datetime: " + value);
 					}
@@ -153,11 +197,65 @@ public class MySQLColumnMeta extends ColumnMeta implements MySQLDialect.MySQLDia
 						throw new IllegalArgumentException("auto_increment does not apply to " + type);
 				}
 				if(index != null)
-					throw new IllegalArgumentException("unexpected index: " + index);
+					throw new IllegalArgumentException("unexpected index: " + index + ", should be null");
 				if(!(value instanceof Boolean))
-					throw new IllegalArgumentException("unexpected value: " + value);
+					throw new IllegalArgumentException("expected boolean value, got " + value);
 
 				autoIncrement = (Boolean) value;
+				break;
+			case "on update current_timestamp":
+			case "current_timestamp":
+			case "on update":
+			case "on_update":
+				switch ((MysqlType) type)
+				{
+					case TIMESTAMP:
+					case DATETIME:
+						break;
+					default:
+						throw new IllegalArgumentException("setting current timestamp on update does not apply to " + type);
+				}
+				if(index != null)
+					throw new IllegalArgumentException("unexpected index: " + index + ", should be null");
+				if(!(value instanceof Boolean))
+					throw new IllegalArgumentException("expected boolean value, got " + value);
+
+				ctOnUpdate = (Boolean) value;
+				break;
+			case "character set":
+			case "character_set":
+			case "characterset":
+			case "char set":
+			case "char_set":
+			case "charset":
+			case "collate":
+			case "collation":
+				switch ((MysqlType) type)
+				{
+					case VARCHAR:
+					case CHAR:
+					case ENUM:
+					case SET:
+					case TINYTEXT:
+					case MEDIUMTEXT:
+					case TEXT:
+					case LONGTEXT:
+						break;
+					default:
+						throw new IllegalArgumentException("character_set does not apply to " + type);
+				}
+				if(index == null && value == null)
+					throw new NullPointerException("expected string index (character set) or value (collation), both null");
+				if(index != null && !(index instanceof String))
+					throw new IllegalArgumentException("expected string index (character set), got " + index);
+				else if (index != null && !((String) index).matches("\\w+"))
+					throw new IllegalArgumentException("possible SQL injection? invalid character set: " + index);
+				if(value != null && !(value instanceof String))
+					throw new IllegalArgumentException("expected string value (collation), got " + value);
+				else if (value != null && !((String) value).matches("\\w+"))
+					throw new IllegalArgumentException("possible SQL injection? invalid collation: " + value);
+
+				characterSet = new KeyValue<>((String) index, (String) value);
 				break;
 			case "signed":
 			case "unsigned":
@@ -204,9 +302,28 @@ public class MySQLColumnMeta extends ColumnMeta implements MySQLDialect.MySQLDia
 	{
 		switch ((MysqlType) type)
 		{
+			case DATE:
+			case TINYTEXT:
+			case TINYBLOB:
+			case MEDIUMTEXT:
+			case MEDIUMBLOB:
+			case LONGTEXT:
+			case LONGBLOB:
 			case BOOLEAN:
 				txt.wr(((MysqlType) type).name());
 				break;
+			case DATETIME:
+			case TIMESTAMP:
+			case TIME:
+			case TEXT:
+			case BLOB:
+				if(args.length == 0)
+				{
+					txt.wr(((MysqlType) type).name());
+					break;
+				}
+			case BINARY:
+			case VARBINARY:
 			case CHAR:
 			case VARCHAR:
 			case BIT:
@@ -253,6 +370,25 @@ public class MySQLColumnMeta extends ColumnMeta implements MySQLDialect.MySQLDia
 			default:
 				throw new Error("TODO");
 		}
+		/*
+		 * POSSIBLE SQL INJECTION BECAUSE THE CHARACTER SET
+		 * AND COLLATION AREN'T SANITIZED
+		 *
+		 * other than the pattern matching in option(String, Object, Object)
+		 */
+		if(characterSet != null)
+		{
+			String charset = characterSet.getKey();
+			if(charset != null)
+			{
+//				from the mysql documentation:
+//				CHARSET is a synonym for CHARACTER SET.
+				txt.wr(" CHARSET ").wr(charset);
+			}
+			String collation = characterSet.getValue();
+			if(collation != null)
+				txt.wr(" COLLATE ").wr(collation);
+		}
 		if(notNull != null && notNull)
 			txt.wr(" NOT NULL");
 		if(defaultValue != null)
@@ -264,6 +400,20 @@ public class MySQLColumnMeta extends ColumnMeta implements MySQLDialect.MySQLDia
 			}
 			else
 				txt.wr(" DEFAULT CURRENT_TIMESTAMP");
+			if(args.length > 0)
+			{
+				values.add(new AbstractMap.SimpleImmutableEntry<>(MysqlType.INT, args[0]));
+				txt.wr("(?)");
+			}
+		}
+		if(ctOnUpdate != null && ctOnUpdate)
+		{
+			txt.wr(" ON UPDATE CURRENT_TIMESTAMP");
+			if(args.length > 0)
+			{
+				values.add(new AbstractMap.SimpleImmutableEntry<>(MysqlType.INT, args[0]));
+				txt.wr("(?)");
+			}
 		}
 		if(autoIncrement != null && autoIncrement)
 			txt.wr(" AUTO_INCREMENT");

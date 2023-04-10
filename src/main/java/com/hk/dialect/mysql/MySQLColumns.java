@@ -8,14 +8,24 @@ import static com.mysql.cj.MysqlType.*;
 @SuppressWarnings("unused")
 public interface MySQLColumns
 {
+	static ColumnMeta CHAR(int length)
+	{
+		return new MySQLColumnMeta(CHAR, length);
+	}
+
 	static ColumnMeta VARCHAR(int length)
 	{
 		return new MySQLColumnMeta(VARCHAR, length);
 	}
 
-	static ColumnMeta CHAR(int length)
+	static ColumnMeta BINARY(int length)
 	{
-		return new MySQLColumnMeta(CHAR, length);
+		return new MySQLColumnMeta(BINARY, length);
+	}
+
+	static ColumnMeta VARBINARY(int length)
+	{
+		return new MySQLColumnMeta(VARBINARY, length);
 	}
 
 	static ColumnMeta FLOAT()
@@ -101,5 +111,80 @@ public interface MySQLColumns
 	static ColumnMeta BIGINT(int digits)
 	{
 		return new MySQLColumnMeta(BIGINT, digits);
+	}
+
+	static ColumnMeta TINYTEXT()
+	{
+		return new MySQLColumnMeta(TINYTEXT);
+	}
+
+	static ColumnMeta TEXT(int length)
+	{
+		return new MySQLColumnMeta(TEXT, length);
+	}
+
+	static ColumnMeta TEXT()
+	{
+		return new MySQLColumnMeta(TEXT);
+	}
+
+	static ColumnMeta MEDIUMTEXT()
+	{
+		return new MySQLColumnMeta(MEDIUMTEXT);
+	}
+
+	static ColumnMeta LONGTEXT()
+	{
+		return new MySQLColumnMeta(LONGTEXT);
+	}
+
+	static ColumnMeta TINYBLOB()
+	{
+		return new MySQLColumnMeta(TINYBLOB);
+	}
+
+	static ColumnMeta BLOB(int length)
+	{
+		return new MySQLColumnMeta(BLOB, length);
+	}
+
+	static ColumnMeta BLOB()
+	{
+		return new MySQLColumnMeta(BLOB);
+	}
+
+	static ColumnMeta MEDIUMBLOB()
+	{
+		return new MySQLColumnMeta(MEDIUMBLOB);
+	}
+
+	static ColumnMeta LONGBLOB()
+	{
+		return new MySQLColumnMeta(LONGBLOB);
+	}
+
+	static ColumnMeta DATE()
+	{
+		return new MySQLColumnMeta(DATE);
+	}
+
+	static ColumnMeta DATETIME()
+	{
+		return new MySQLColumnMeta(DATETIME);
+	}
+
+	static ColumnMeta DATETIME(int fsp)
+	{
+		return new MySQLColumnMeta(DATETIME, fsp);
+	}
+
+	static ColumnMeta TIMESTAMP()
+	{
+		return new MySQLColumnMeta(TIMESTAMP);
+	}
+
+	static ColumnMeta TIMESTAMP(int fsp)
+	{
+		return new MySQLColumnMeta(TIMESTAMP, fsp);
 	}
 }

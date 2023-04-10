@@ -16,11 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.hk.dialect.mysql.MySQLColumns.DOUBLE;
-import static com.hk.dialect.mysql.MySQLColumns.VARCHAR;
+import static com.hk.dialect.mysql.MySQLColumns.*;
 import static com.hk.dialect.mysql.MySQLDialect.MySQLQueryOperator.ADD;
 import static com.hk.dialect.mysql.MySQLDialect.MySQLQueryTest.*;
-import static com.hk.dialect.mysql.MySQLColumns.*;
 import static org.junit.Assert.*;
 
 public class SyntaxTest
@@ -387,24 +385,6 @@ public class SyntaxTest
 		List<Map.Entry<SQLType, Object>> values = new ArrayList<>();
 
 		/////////////////////////////////////////////
-		Owner lua = mysql.owner("lua");
-		TableMeta points = mysql.table(lua, "points");
-		FieldMeta x = points.field("x");
-		FieldMeta y = points.field("y");
-		expected = "CREATE TABLE `lua_points` (\n" +
-				"`x` DOUBLE,\n" +
-				"`y` DOUBLE,\n" +
-				"PRIMARY KEY (`x`, `y`)\n" +
-				") ENGINE=MyISAM";
-		q = mysql.createTable(points)
-				.column(x, DOUBLE())
-				.column(y, DOUBLE())
-				.extra("primary key", x, y)
-				.extra("engine", "myisam");
-		txt = q.print(new HTMLText(), values);
-		assertEquals(expected, txt.create());
-		assertTrue(values.isEmpty());
-		/////////////////////////////////////////////
 		TableMeta names = mysql.table(Owner.SYSTEM, "cre_tbl_names");
 		FieldMeta fname = names.field("fname");
 		FieldMeta lname = names.field("lname");
@@ -420,7 +400,6 @@ public class SyntaxTest
 				.column(lname, VARCHAR(256))
 				.column(frequency, DOUBLE())
 				.extra("primary key", fname, lname);
-		values.clear();
 		txt = q.print(new HTMLText(), values);
 		assertEquals(expected, txt.create());
 		assertEquals(2, values.size());
@@ -505,6 +484,43 @@ public class SyntaxTest
 			entry = values.get(i);
 			assertEquals(MysqlType.INT, entry.getKey());
 			assertEquals(1024, entry.getValue());
+		}
+		/////////////////////////////////////////////
+		TableMeta differentCharsets = mysql.table(Owner.SYSTEM, "diff_charsets");
+		FieldMeta charset1 = differentCharsets.field("charset1");
+		FieldMeta charset2 = differentCharsets.field("charset2");
+		FieldMeta charset3 = differentCharsets.field("charset3");
+		FieldMeta charset4 = differentCharsets.field("charset4");
+		FieldMeta charset5 = differentCharsets.field("charset5");
+		FieldMeta charset6 = differentCharsets.field("charset6");
+		FieldMeta charset7 = differentCharsets.field("charset7");
+		expected = "CREATE TABLE `sys_diff_charsets` (\n" +
+				"`charset1` VARCHAR(?) CHARSET utf8mb4 COLLATE utf8mb4_bin,\n" +
+				"`charset2` VARCHAR(?) CHARSET utf8mb3 COLLATE utf8mb3_bin,\n" +
+				"`charset3` VARCHAR(?) CHARSET utf8 COLLATE utf8_bin,\n" +
+				"`charset4` CHAR(?) CHARSET ucs2 COLLATE ucs2_bin,\n" +
+				"`charset5` CHAR(?) CHARSET utf16 COLLATE utf16_bin,\n" +
+				"`charset6` CHAR(?) CHARSET utf16le COLLATE utf16le_bin,\n" +
+				"`charset7` CHAR(?) CHARSET utf32 COLLATE utf32_bin\n" +
+				")";
+		q = mysql.createTable(differentCharsets)
+				.column(charset1, VARCHAR(1).option("CHARACTER SET", "utf8mb4", "utf8mb4_bin"))
+				.column(charset2, VARCHAR(2).option("CHArACTER_SET", "utf8mb3", "utf8mb3_bin"))
+				.column(charset3, VARCHAR(3).option("CHArsET", "utf8", "utf8_bin"))
+				.column(charset4, CHAR(4).option("char_set", "ucs2", "ucs2_bin"))
+				.column(charset5, CHAR(5).option("COLLATE", "utf16", "utf16_bin"))
+				.column(charset6, CHAR(6).option("collation", "utf16le", "utf16le_bin"))
+				.column(charset7, CHAR(7).option("characterset", "utf32", "utf32_bin"));
+		values.clear();
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		assertEquals(7, values.size());
+
+		for (int i = 0; i < 7; i++)
+		{
+			entry = values.get(i);
+			assertEquals(MysqlType.INT, entry.getKey());
+			assertEquals(1 + i, entry.getValue());
 		}
 		/////////////////////////////////////////////
 		TableMeta floatPoints = mysql.table(Owner.TEST, "vector_3");
@@ -685,6 +701,176 @@ public class SyntaxTest
 			assertEquals(MysqlType.INT, entry.getKey());
 			assertEquals(vals[i], entry.getValue());
 		}
+		/////////////////////////////////////////////
+		TableMeta rand6 = mysql.table(Owner.USER, "rand6");
+		FieldMeta rand6A = rand6.field("a");
+		FieldMeta rand6B = rand6.field("b");
+		FieldMeta rand6C = rand6.field("c");
+		FieldMeta rand6D = rand6.field("d");
+		expected = "CREATE TABLE `usr_rand6` (\n" +
+				"`a` BINARY(?),\n" +
+				"`b` BINARY(?),\n" +
+				"`c` VARBINARY(?),\n" +
+				"`d` VARBINARY(?)\n" +
+				")";
+		q = mysql.createTable(rand6)
+				.column(rand6A, BINARY(1))
+				.column(rand6B, BINARY(256))
+				.column(rand6C, VARBINARY(2))
+				.column(rand6D, VARBINARY(255));
+		values.clear();
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		vals = new int[] { 1, 256, 2, 255 };
+		for (int i = 0; i < vals.length; i++)
+		{
+			entry = values.get(i);
+			assertEquals(MysqlType.INT, entry.getKey());
+			assertEquals(vals[i], entry.getValue());
+		}
+		/////////////////////////////////////////////
+		TableMeta rand7 = mysql.table(Owner.USER, "rand7");
+		FieldMeta rand7A = rand7.field("a");
+		FieldMeta rand7B = rand7.field("b");
+		FieldMeta rand7C = rand7.field("c");
+		FieldMeta rand7D = rand7.field("d");
+		FieldMeta rand7E = rand7.field("e");
+		expected = "CREATE TABLE `usr_rand7` (\n" +
+				"`a` TEXT,\n" +
+				"`b` BLOB,\n" +
+				"`c` TEXT CHARSET utf8mb4 COLLATE utf8mb4_bin,\n" +
+				"`d` TEXT(?),\n" +
+				"`e` BLOB(?)\n" +
+				")";
+		q = mysql.createTable(rand7)
+				.column(rand7A, TEXT())
+				.column(rand7B, BLOB())
+				.column(rand7C, TEXT().option("charset", "utf8mb4", "utf8mb4_bin"))
+				.column(rand7D, TEXT(12345))
+				.column(rand7E, BLOB(54321));
+		values.clear();
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		vals = new int[] { 12345, 54321 };
+		for (int i = 0; i < vals.length; i++)
+		{
+			entry = values.get(i);
+			assertEquals(MysqlType.INT, entry.getKey());
+			assertEquals(vals[i], entry.getValue());
+		}
+		/////////////////////////////////////////////
+		TableMeta rand8 = mysql.table(Owner.USER, "rand8");
+		FieldMeta rand8A = rand8.field("a");
+		FieldMeta rand8B = rand8.field("b");
+		FieldMeta rand8C = rand8.field("c");
+		FieldMeta rand8D = rand8.field("d");
+		expected = "CREATE TABLE `usr_rand8` (\n" +
+				"`a` TINYTEXT,\n" +
+				"`b` TEXT,\n" +
+				"`c` MEDIUMTEXT,\n" +
+				"`d` LONGTEXT\n" +
+				")";
+		q = mysql.createTable(rand8)
+				.column(rand8A, TINYTEXT())
+				.column(rand8B, TEXT())
+				.column(rand8C, MEDIUMTEXT())
+				.column(rand8D, LONGTEXT());
+		values.clear();
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		assertTrue(values.isEmpty());
+		/////////////////////////////////////////////
+		TableMeta rand9 = mysql.table(Owner.USER, "rand9");
+		FieldMeta rand9A = rand9.field("a");
+		FieldMeta rand9B = rand9.field("b");
+		FieldMeta rand9C = rand9.field("c");
+		FieldMeta rand9D = rand9.field("d");
+		expected = "CREATE TABLE `usr_rand9` (\n" +
+				"`a` TINYBLOB,\n" +
+				"`b` BLOB,\n" +
+				"`c` MEDIUMBLOB,\n" +
+				"`d` LONGBLOB\n" +
+				")";
+		q = mysql.createTable(rand9)
+				.column(rand9A, TINYBLOB())
+				.column(rand9B, BLOB())
+				.column(rand9C, MEDIUMBLOB())
+				.column(rand9D, LONGBLOB());
+		values.clear();
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		assertTrue(values.isEmpty());
+		/////////////////////////////////////////////
+		TableMeta rand10 = mysql.table(Owner.USER, "rand10");
+		FieldMeta rand10A = rand10.field("a");
+		FieldMeta rand10B = rand10.field("b");
+		FieldMeta rand10C = rand10.field("c");
+		FieldMeta rand10D = rand10.field("d");
+		FieldMeta rand10E = rand10.field("e");
+		FieldMeta rand10F = rand10.field("f");
+		FieldMeta rand10G = rand10.field("g");
+		FieldMeta rand10H = rand10.field("h");
+		FieldMeta rand10I = rand10.field("i");
+		FieldMeta rand10J = rand10.field("j");
+		FieldMeta rand10K = rand10.field("k");
+		FieldMeta rand10L = rand10.field("l");
+		expected = "CREATE TABLE `usr_rand10` (\n" +
+				"`a` DATETIME,\n" +
+				"`b` TIMESTAMP,\n" +
+				"`c` DATETIME(?),\n" +
+				"`d` TIMESTAMP(?),\n" +
+				"`e` DATETIME DEFAULT CURRENT_TIMESTAMP,\n" +
+				"`f` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n" +
+				"`g` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n" +
+				"`h` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n" +
+				"`i` DATETIME(?) DEFAULT CURRENT_TIMESTAMP(?),\n" +
+				"`j` TIMESTAMP(?) DEFAULT CURRENT_TIMESTAMP(?),\n" +
+				"`k` DATETIME(?) DEFAULT CURRENT_TIMESTAMP(?) ON UPDATE CURRENT_TIMESTAMP(?),\n" +
+				"`l` TIMESTAMP(?) DEFAULT CURRENT_TIMESTAMP(?) ON UPDATE CURRENT_TIMESTAMP(?)\n" +
+				")";
+		q = mysql.createTable(rand10)
+				.column(rand10A, DATETIME())
+				.column(rand10B, TIMESTAMP())
+				.column(rand10C, DATETIME(6))
+				.column(rand10D, TIMESTAMP(6))
+				.column(rand10E, DATETIME().option("default", "now"))
+				.column(rand10F, TIMESTAMP().option("default", "now"))
+				.column(rand10G, DATETIME().option("default", "now").option("ON UPDATE CURRENT_TIMESTAMP"))
+				.column(rand10H, TIMESTAMP().option("default", "now").option("on update"))
+				.column(rand10I, DATETIME(6).option("default", "now"))
+				.column(rand10J, TIMESTAMP(6).option("default", "now"))
+				.column(rand10K, DATETIME(6).option("default", "now").option("on update"))
+				.column(rand10L, TIMESTAMP(6).option("default", "now").option("on update"));
+		values.clear();
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		assertEquals(12, values.size());
+
+		for (int i = 0; i < 12; i++)
+		{
+			entry = values.get(i);
+			assertEquals(MysqlType.INT, entry.getKey());
+			assertEquals(6, entry.getValue());
+		}
+		/////////////////////////////////////////////
+		Owner lua = mysql.owner("lua");
+		TableMeta points = mysql.table(lua, "points");
+		FieldMeta x = points.field("x");
+		FieldMeta y = points.field("y");
+		expected = "CREATE TABLE `lua_points` (\n" +
+				"`x` DOUBLE,\n" +
+				"`y` DOUBLE,\n" +
+				"PRIMARY KEY (`x`, `y`)\n" +
+				") ENGINE=InnoDB";
+		q = mysql.createTable(points)
+				.column(x, DOUBLE())
+				.column(y, DOUBLE())
+				.extra("primary key", x, y)
+				.extra("engine", "innodb");
+		values.clear();
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		assertTrue(values.isEmpty());
 	}
 
 	@After
