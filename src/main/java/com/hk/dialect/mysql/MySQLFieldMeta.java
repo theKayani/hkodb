@@ -1,6 +1,7 @@
 package com.hk.dialect.mysql;
 
 import com.hk.dialect.FieldMeta;
+import com.hk.dialect.Query;
 import com.hk.str.HTMLText;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,6 +14,7 @@ public class MySQLFieldMeta implements MySQLQueryValue, FieldMeta, MySQLDialect.
 {
 	final MySQLTableMeta table;
 	final String fieldName;
+	private boolean group;
 
 	public MySQLFieldMeta(MySQLTableMeta table, String name)
 	{
@@ -27,11 +29,23 @@ public class MySQLFieldMeta implements MySQLQueryValue, FieldMeta, MySQLDialect.
 	}
 
 	@Override
+	public Query.QueryValue group()
+	{
+		group = true;
+		return this;
+	}
+
+	@Override
 	public HTMLText print(HTMLText txt, List<Map.Entry<SQLType, Object>> values, boolean qualified)
 	{
+		if(group)
+			txt.wr("(");
 		if(qualified)
 			txt.wr("`").wr(table.tableName).wr("`.");
-		return txt.wr(fieldName);
+		txt.wr(fieldName);
+		if(group)
+			txt.wr(")");
+		return txt;
 	}
 
 	@Override

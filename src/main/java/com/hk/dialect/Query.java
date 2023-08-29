@@ -11,6 +11,8 @@ public interface Query extends Dialect.DialectOwner
 		Condition or(Condition condition);
 
 		Condition not();
+
+		Condition group();
 	}
 
 	interface QueryOperator extends Dialect.DialectOwner
@@ -38,5 +40,7 @@ public interface Query extends Dialect.DialectOwner
 		Condition is(QueryTest test, QueryValue value);
 
 		QueryValue op(QueryOperator op, QueryValue value);
+
+		QueryValue group();
 	}
 }

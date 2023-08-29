@@ -31,13 +31,13 @@ public final class MySQLDialect extends Dialect
 	@Override
 	public UpdateQuery update(TableMeta table)
 	{
-		throw new Error("TODO");
+		return new MySQLUpdateQuery(table, null, null);
 	}
 
 	@Override
 	public DeleteQuery delete(TableMeta table)
 	{
-		throw new Error("TODO");
+		return new MySQLDeleteQuery(table, null);
 	}
 
 	@Override
@@ -116,7 +116,10 @@ public final class MySQLDialect extends Dialect
 		LESS_EQ_THAN,
 		GRTR_THAN,
 		GRTR_EQ_THAN,
-		LIKE;
+		LIKE,
+		AND,
+		OR,
+		NOT;
 
 		@Override
 		public Dialect dialect()
@@ -142,7 +145,10 @@ public final class MySQLDialect extends Dialect
 				case GRTR_EQ_THAN:
 					return txt.wr(">=");
 				case LIKE:
-					return txt.wr("LIKE");
+				case AND:
+				case OR:
+				case NOT:
+					return txt.wr(name());
 				default:
 					throw new UnsupportedOperationException();
 			}

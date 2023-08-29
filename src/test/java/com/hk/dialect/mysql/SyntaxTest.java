@@ -67,6 +67,7 @@ public class SyntaxTest
 		statement.close();
 	}
 
+	// CREATE
 	@Test
 	public void testInsertSyntax()
 	{
@@ -181,6 +182,7 @@ public class SyntaxTest
 		}
 	}
 
+	// READ
 	@Test
 	public void testSelectSyntax()
 	{
@@ -371,6 +373,188 @@ public class SyntaxTest
 		entry = values.get(1);
 		assertEquals(MysqlType.BIGINT, entry.getKey());
 		assertEquals(10, entry.getValue());
+		/////////////////////////////////////////////
+		expected = "SELECT * FROM `lua_points` WHERE `lua_points`.`x` = ? AND (`lua_points`.`y` = ? OR `lua_points`.`y` = ?)";
+		q = mysql.select().from(points).where(x.is(EQUALS, mysql.value(12)).and(y.is(EQUALS, mysql.value(8)).or(y.is(EQUALS, mysql.value(16))).group()));
+		values.clear();
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		assertEquals(3, values.size());
+
+		entry = values.get(0);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(12, entry.getValue());
+
+		entry = values.get(1);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(8, entry.getValue());
+
+		entry = values.get(2);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(16, entry.getValue());
+	}
+
+	// UPDATE
+	@Test
+	public void testUpdateSyntax()
+	{
+		Dialect mysql = MySQLDialect.getInstance();
+
+		Owner lua = mysql.owner("lua");
+		TableMeta points = mysql.table(lua, "points");
+
+		FieldMeta x = points.field("x");
+		FieldMeta y = points.field("y");
+
+//		CREATE TABLE `lua_points` (
+//			`x` DOUBLE,
+//			`y` DOUBLE,
+//			PRIMARY KEY (`x`,`y`)
+//		) ENGINE=MyISAM;
+
+		UpdateQuery q;
+		HTMLText txt;
+		String expected;
+		Map.Entry<SQLType, Object> entry;
+		List<Map.Entry<SQLType, Object>> values = new ArrayList<>();
+
+		/////////////////////////////////////////////
+		expected = "UPDATE `lua_points` SET `lua_points`.`x` = ? WHERE `lua_points`.`x` = ?";
+		q = mysql.update(points).set(x, mysql.value(5)).where(x.is(EQUALS, mysql.value(10)));
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		assertEquals(2, values.size());
+
+		entry = values.get(0);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(5, entry.getValue());
+
+		entry = values.get(1);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(10, entry.getValue());
+
+		/////////////////////////////////////////////
+		expected = "UPDATE `lua_points` SET `lua_points`.`x` = ? WHERE `lua_points`.`x` + `lua_points`.`y` = ? + ?";
+		q = mysql.update(points).set(x, mysql.value(15)).where(x.op(ADD, y).is(EQUALS, mysql.value(30).op(ADD, mysql.value(45))));
+		values.clear();
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		assertEquals(3, values.size());
+
+		entry = values.get(0);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(15, entry.getValue());
+
+		entry = values.get(1);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(30, entry.getValue());
+
+		entry = values.get(2);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(45, entry.getValue());
+
+		/////////////////////////////////////////////
+		expected = "UPDATE `lua_points` SET `lua_points`.`x` = ?, `lua_points`.`y` = ?";
+		q = mysql.update(points).set(x, mysql.value(4)).set(y, mysql.value(8));
+		values.clear();
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		assertEquals(2, values.size());
+
+		entry = values.get(0);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(4, entry.getValue());
+
+		entry = values.get(1);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(8, entry.getValue());
+		/////////////////////////////////////////////
+		expected = "UPDATE `lua_points` SET `lua_points`.`x` = DEFAULT WHERE `lua_points`.`y` = ?";
+		q = mysql.update(points).setDefault(x).where(y.is(EQUALS, mysql.value(3)));
+		values.clear();
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		assertEquals(1, values.size());
+
+		entry = values.get(0);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(3, entry.getValue());
+	}
+
+	// DELETE
+	@Test
+	public void testDeleteSyntax()
+	{
+		Dialect mysql = MySQLDialect.getInstance();
+
+		Owner lua = mysql.owner("lua");
+		TableMeta points = mysql.table(lua, "points");
+
+		FieldMeta x = points.field("x");
+		FieldMeta y = points.field("y");
+
+//		CREATE TABLE `lua_points` (
+//			`x` DOUBLE,
+//			`y` DOUBLE,
+//			PRIMARY KEY (`x`,`y`)
+//		) ENGINE=MyISAM;
+
+		DeleteQuery q;
+		HTMLText txt;
+		String expected;
+		Map.Entry<SQLType, Object> entry;
+		List<Map.Entry<SQLType, Object>> values = new ArrayList<>();
+
+		/////////////////////////////////////////////
+		expected = "DELETE FROM `lua_points` WHERE `lua_points`.`x` = ?";
+		q = mysql.delete(points).where(x.is(EQUALS, mysql.value(10)));
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		assertEquals(1, values.size());
+
+		entry = values.get(0);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(10, entry.getValue());
+
+		/////////////////////////////////////////////
+		expected = "DELETE FROM `lua_points` WHERE `lua_points`.`x` + `lua_points`.`y` = ? + ?";
+		q = mysql.delete(points).where(x.op(ADD, y).is(EQUALS, mysql.value(33).op(ADD, mysql.value(66))));
+		values.clear();
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		assertEquals(2, values.size());
+
+		entry = values.get(0);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(33, entry.getValue());
+
+		entry = values.get(1);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(66, entry.getValue());
+
+		/////////////////////////////////////////////
+		expected = "DELETE FROM `lua_points`";
+		q = mysql.delete(points);
+		values.clear();
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		assertTrue(values.isEmpty());
+
+		/////////////////////////////////////////////
+		expected = "DELETE FROM `lua_points` WHERE `lua_points`.`x` = ? AND `lua_points`.`y` = ?";
+		q = mysql.delete(points).where(x.is(EQUALS, mysql.value(-3)).and(y.is(EQUALS, mysql.value(3))));
+		values.clear();
+		txt = q.print(new HTMLText(), values);
+		assertEquals(expected, txt.create());
+		assertEquals(2, values.size());
+
+		entry = values.get(0);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(-3, entry.getValue());
+
+		entry = values.get(1);
+		assertEquals(MysqlType.BIGINT, entry.getKey());
+		assertEquals(3, entry.getValue());
 	}
 
 	@Test

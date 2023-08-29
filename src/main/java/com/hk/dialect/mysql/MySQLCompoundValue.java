@@ -11,6 +11,7 @@ public class MySQLCompoundValue implements MySQLQueryValue, MySQLDialect.MySQLDi
 {
 	private final Query.QueryValue value1, value2;
 	private final Query.QueryOperator op;
+	private boolean group = false;
 
 	public MySQLCompoundValue(Query.QueryValue value1, Query.QueryOperator op, Query.QueryValue value2)
 	{
@@ -20,8 +21,17 @@ public class MySQLCompoundValue implements MySQLQueryValue, MySQLDialect.MySQLDi
 	}
 
 	@Override
+	public Query.QueryValue group()
+	{
+		group = true;
+		return this;
+	}
+
+	@Override
 	public HTMLText print(HTMLText txt, List<Map.Entry<SQLType, Object>> values)
 	{
+		if(group)
+			txt.wr("(");
 		if(value1 != null)
 			value1.print(txt, values);
 
@@ -36,6 +46,8 @@ public class MySQLCompoundValue implements MySQLQueryValue, MySQLDialect.MySQLDi
 
 		if(value2 != null)
 			value2.print(txt, values);
+		if(group)
+			txt.wr(")");
 
 		return txt;
 	}

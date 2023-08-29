@@ -38,13 +38,19 @@ public class MySQLSelectQuery implements SelectQuery, MySQLDialect.MySQLDialectO
 	public HTMLText print(HTMLText txt, List<Map.Entry<SQLType, Object>> values)
 	{
 		txt.wr("SELECT ");
-		for (int i = 0; i < fields.length; i++)
+		if (fields != null && fields.length > 0)
 		{
-			fields[i].print(txt, values);
+			for (int i = 0; i < fields.length; i++)
+			{
+				fields[i].print(txt, values);
 
-			if(i < fields.length - 1)
-				txt.wr(", ");
+				if(i < fields.length - 1)
+					txt.wr(", ");
+			}
 		}
+		else
+			txt.wr("*");
+
 		txt.wr(" FROM ");
 		for (int i = 0; i < tables.length; i++)
 		{

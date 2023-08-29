@@ -1,5 +1,6 @@
 package com.hk.dialect.mysql;
 
+import com.hk.dialect.Query;
 import com.hk.str.HTMLText;
 import com.mysql.cj.MysqlType;
 
@@ -17,6 +18,12 @@ public class MySQLPrimitiveValueMeta implements MySQLQueryValue, MySQLDialect.My
 	{
 		this.value = value;
 		this.type = type;
+	}
+
+	@Override
+	public Query.QueryValue group()
+	{
+		return this;
 	}
 
 	@Override
